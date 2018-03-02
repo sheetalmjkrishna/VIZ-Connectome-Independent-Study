@@ -2,7 +2,8 @@
   "name": "connectomes",
   "private": true,
   "dependencies": {
-    "bootstrap": "~3.3.5"
+    "bootstrap": "~3.3.5",
+    "d3": "^4.13.0"
   },
   "overrides": {
     "bootstrap": {
