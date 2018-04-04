@@ -111,7 +111,11 @@ class Graph {
         if (self.verbose) {
           console.log('finished path', currentPath);
         }
-
+        if(currentPath.edges.length==currentPath.nodes.length){
+          currentPath.nodes.push(currentPath.graph.nodes.filter(function (d) {
+            return d.id==currentPath.edges.slice(-1)[0].targetId ;
+        })[0]);
+        }
         finishedPaths.push(currentPath);
         continue;
       }
@@ -136,7 +140,8 @@ class Graph {
         }
 
         // Are we allowed to walk on the current edge?
-        if (currentEdge.type.match(nextEdgeConstraint)) {
+        //either the constraint is a regex and the regex should match or it's an array of ids and the array should contain this id
+        if ((nextEdgeConstraint.length==null && currentEdge.type.match(nextEdgeConstraint)) || (nextEdgeConstraint.length!=null && nextEdgeConstraint.includes(currentEdge.id))) {
           let nextNodeId = currentEdge.targetId;
           let nextNodeIndex = self.nodeIdToIndexes[nextNodeId];
           let nextNode = self.nodes[nextNodeIndex];
@@ -144,8 +149,8 @@ class Graph {
           if (self.verbose) {
             console.log('walked on edge, found node', nextNode);
           }
-
-          if (nextNode.label.match(nextNodeConstraint)) {
+          if ((nextNodeConstraint.length==null && nextNode.label.match(nextNodeConstraint)) || (nextNodeConstraint.length!=null && nextNodeConstraint.includes(nextNode.id))) {
+          //if (nextNode.label.match(nextNodeConstraint)) {
             let newPath = new Path(this, currentPath.nodes, currentPath.edges);
             newPath.addNode(nextNode); // nodes must be added BEFORE edges.
             newPath.addEdge(currentEdge);
@@ -172,7 +177,8 @@ class Graph {
     let paths = [];
     for (let i = 0; i < self.nodes.length; ++i) {
       let node = self.nodes[i];
-      if (node.label.match(nodeConstraints[0])) {
+      if ((nodeConstraints[0].length==null && node.label.match(nodeConstraints[0])) || (nodeConstraints[0].length!=null && nodeConstraints[0].includes(node.id))) {
+     // if (node.label.match(nodeConstraints[0])) {
         let path = new Path(this);
         path.addNode(node);
         paths.push(path);
