@@ -73,8 +73,8 @@ gulp.task('images', () => {
 });
 
 gulp.task('assets', () => {
-  return gulp.src('app/assets/*.json')
-    .pipe($.if(dev, gulp.dest('.tmp/assets'), gulp.dest('dist/assets')));
+  return gulp.src(['app/assets/*'])
+    .pipe(gulp.dest('dist/assets'));
 });
 
 gulp.task('fonts', () => {
