@@ -9,7 +9,7 @@ class Adjacency_matrix {
 
 
         this.width = 500;
-        this.height = 500;
+        this.height = 550;
         this.data = data.data;
         this.totalPaths = totalPaths;
         this.node_index = data.node_index;
@@ -23,6 +23,10 @@ class Adjacency_matrix {
             .attr('height', this.height + this.margin.top + this.margin.bottom)
             .append('g')
             .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
+        this.legend=d3.select('#adjacency_matrix')
+                      .append('g')
+                      .attr('transform', 'translate(' + (((this.margin.left+this.width+this.margin.right)/3)-30) + ',' + (this.height+5) + ')')
+                      .attr('class', 'legendLinear');
         this.svg.style({
             'margin-left': (-this.margin.left + 'px'),
             'margin-top': (-this.margin.top + 'px')
@@ -143,6 +147,8 @@ class Adjacency_matrix {
                 .attr('value', function(d) {
                     return self.c(d.z)
                 })
+                .attr('rx','6px')
+                .attr('ry','6px')
                 .attr('width', self.x.bandwidth())
                 .attr('height', self.x.bandwidth())
                 .style('fill', function(d) {
@@ -185,5 +191,14 @@ class Adjacency_matrix {
             d3.selectAll('text').classed('active', false);
         }
         d3.select('#adj_totPaths').text('The total number of paths = ' + self.totalPaths);
+
+        var legendLinear = d3.legendColor()
+          .shapeWidth(30)
+          .cells(10)
+          .orient('horizontal')
+          .scale(self.c);
+
+        this.legend
+            .call(legendLinear);
     }
 }
