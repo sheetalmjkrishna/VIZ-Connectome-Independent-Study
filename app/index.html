@@ -1,29 +1,33 @@
 <!doctype html>
 <html lang="">
-   <head>
-      <meta charset="utf-8">
-      <meta name="description" content="">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>connectomes</title>
-      <link rel="apple-touch-icon" href="apple-touch-icon.png">
-      <!-- Place favicon.ico in the root directory -->
-      <!-- build:css styles/vendor.css -->
-      <!-- bower:css -->
-      <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css" />
-      <!-- endbower -->
-      <!-- endbuild -->
-      <!-- build:css styles/main.css -->
-      <link rel="stylesheet" href="styles/main.css">
-      <!-- endbuild -->
-   </head>
-   <body>
-      <!--[if IE]>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connectomes</title>
+    <link rel="shortcut icon" href="eye1.png" type="image/png">
+    <!-- Place favicon.ico in the root directory -->
+    <!-- build:css styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="/bower_components/bootstrap-select/dist/css/bootstrap-select.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/adj_style.css">
+    <!-- endbuild -->
+</head>
+
+<body>
+    <!--[if IE]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
       <![endif]-->
-      <div class="container col-md-12">
-         <div class="col-md-5 well" id="filters">
+    <div class="container col-md-12">
+        <div class="col-md-3 well" id="filters">
             <div id="filter-header">
-               <h3>FILTERS</h3>
+                <h3>FILTERS</h3>
             </div>
             <select class="selectpicker" id="hop-count">
                <option hidden value="" disabled selected>Choose Path Length:</option>
@@ -36,73 +40,114 @@
             <button class="btn btn-default" data-toggle="modal" id="change-file" data-target="#myModal" style="float:right">Change File</button>
             <div id="filter-dropdowns" class="form-group">
             </div>
-         </div>
-         <div class="col-md-7" id="canvas">
-            <h3>Connectivity matrix</h3>
-            <table id="adjacency_matrix_table"></table>
-            <h3>Intermediate node table</h3>
-            <table id="intermediate_node_table"></table>
+        </div>
+        <div class="col-md-9" id="canvas">
+            <div class="alert alert-info minimized" role="alert">&#x1F6C8; <strong>Instructions:</strong><br/><br/>&#x25c8; Choose a file or select the sample file <br/>&#x25c8; Choose the number of hops (the number of edges) <br/>&#x25c8; Restore a pre-existing state from memory by clicking on it or fill up the values <br/>&#x25c8; The comma separated values you see for each state are the constraints set for node, edge alternatively (hover to see all values, if some are hidden) <br/>&#x25c8; While filling, default option is .* (Regex) <br/>&#x25c8; You may enter comma separated regular expressions or cell/edge ids (remember to choose the respective option) <br/>&#x25c8; Leaving fields empty results in the field's value being taken as .* which is computationally expensive, so reduce using that if possible <br/>&#x25c8; Once you fill up the filters, you may save that state if you wish <br/>&#x25c8; A total of 5 states are available and they are replaced in rotation <br/>&#x25c8; Click on Get Paths to see the Connectivity Matrix of all the paths found <br/>&#x25c8; Click on a coloured cell to see the intermediate nodes (if any i.e if hop count >1) and hover on it to see the count <br/>&#x25c8; Click on an intermediate node's count to see the paths formed by the node <br/>&#x25c8; You may change the file/hop-count at any point <br/>&#x25c8; To view data about specific nodes, enter ',' separated node ids into the text field below the connectivity matrix
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true" style="position: absolute; top: 14px; right: 25px;">×</span>
+            </button>
+                <button type="button" class="close" onclick=minMax(this) data-attr="min">
+               <span aria-hidden="true" style="position: absolute; top: -33px; right: 40px; font-size: 60px;">&#751;</span>
+            </button>
+            </div>
+            <!-- <h3>Connectivity matrix</h3>
+            <table id="adjacency_matrix_table"></table>-->
+            <div class="col-md-8 headers">
+                <h3>Connectivity matrix</h3>
+                <svg id="adjacency_matrix"></svg>
+                <p id="adj_totPaths" style="text-align:center;font-weight:  bold;"></p>
+                <hr>
+                <h3>Node Data</h3>
+                <p id="nodeDataMsg">Enter ',' separated list of node ids of nodes whose data you'd like to see:</p>
+                <label for="nodeData">ID(s):  </label>
+                <input type="text" class="form-control" id="nodeData">
+                <button class="btn btn-default" id="get-nodeData" class="form-control" onclick="getNodeData()">Go</button>
+                <p id="nodeDataValidation"></p>
+                <table id="nodeDataTable"></table>
+            </div>
+            <!--<h3>Intermediate node table</h3>
+            <table id="intermediate_node_table"></table>-->
+            <div class="col-md-4 headers">
+                <h3>Intermediate node table</h3>
+                <table id="intermediate_node_table"></table>
+                <p id="int_totPaths" style="text-align:center;font-weight: bold; margin-top: 20px;"></p>
+                <hr>
+                <h3>Paths:</h3>
+                <table id="allPaths"></table>
+            </div>
             <div class="modal fade" data-backdrop="static" data-keyboard="false" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-               <div class="modal-dialog" role="document">
-                  <div class="modal-content">
-                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Choose JSON File</h5>
-                        <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Choose JSON File</h5>
+                            <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close">
                            <span aria-hidden="true">&times;</span>
                            </button>-->
-                     </div>
-                     <div class="modal-body">
-                        <div class="col-md-4">
-                           <label class="btn btn-default" style="float:left">
+                        </div>
+                        <div class="modal-body">
+                            <div class="col-md-4">
+                                <label class="btn btn-default" style="float:left">
                            Choose JSON File<input type="file" style="display:none;" accept=".JSON" id="fileToLoad">
                            </label>
-                           <span id="fileName"></span>
+                                <span id="fileName"></span>
+                            </div>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <div class="col-md-4">
+                                <label style="float:left"><input style="vertical-align: text-bottom; margin-right:  5px;" type="checkbox" id="loadSample">Load Sample JSON</label>
+                            </div>
+                            <br/>
                         </div>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <div class="col-md-4">
-                           <label style="float:left"><input style="vertical-align: text-bottom; margin-right:  5px;" type="checkbox" id="loadSample">Load Sample JSON</label>
+                        <div class="modal-footer">
+                            <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
+                            <button type="button" onclick="loadFileAsText()" id="loadFile" class="btn btn-primary">Load Selected File</button>
                         </div>
-                        <br/>
-                     </div>
-                     <div class="modal-footer">
-                        <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
-                        <button type="button" onclick="loadFileAsText()" id="loadFile" class="btn btn-primary">Load Selected File</button>
-                     </div>
-                  </div>
-               </div>
+                    </div>
+                </div>
             </div>
             <div id="intermediateTable">
             </div>
-         </div>
-      </div>
-      <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-      <script>
-         (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
-         function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
-         e=o.createElement(i);r=o.getElementsByTagName(i)[0];
-         e.src='https://www.google-analytics.com/analytics.js';
-         r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
-         ga('create','UA-XXXXX-X');ga('send','pageview');
-      </script>
-      <!-- build:js scripts/vendor.js -->
-      <!-- bower:js -->
-      <script src="/bower_components/jquery/dist/jquery.js"></script>
-      <script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
-      <script src="/bower_components/d3/d3.js"></script>
-      <!-- endbower -->
-      <!-- endbuild -->
-      <!-- build:js scripts/plugins.js -->
-      <!-- endbuild -->
-      <!-- build:js scripts/main.js -->
-      <script src="scripts/main.js"></script>
-      <script src="scripts/graph/graph.js"></script>
-      <script src="scripts/graph/node.js"></script>
-      <script src="scripts/graph/edge.js"></script>
-      <script src="scripts/graph/path.js"></script>
-      <script src="scripts/graph/adjacency_matrix.js"></script>
-      <script src="scripts/graph/intermediate_table.js"></script>
-      <!-- endbuild -->
-   </body>
+        </div>
+    </div>
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+    <script>
+        (function(b, o, i, l, e, r) {
+            b.GoogleAnalyticsObject = l;
+            b[l] || (b[l] =
+                function() {
+                    (b[l].q = b[l].q || []).push(arguments)
+                });
+            b[l].l = +new Date;
+            e = o.createElement(i);
+            r = o.getElementsByTagName(i)[0];
+            e.src = 'https://www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e, r)
+        }(window, document, 'script', 'ga'));
+        ga('create', 'UA-XXXXX-X');
+        ga('send', 'pageview');
+    </script>
+    <!-- build:js scripts/vendor.js -->
+    <!-- bower:js -->
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="/bower_components/d3/d3.js"></script>
+    <script src="/bower_components/bootstrap-select/dist/js/bootstrap-select.js"></script>
+    <script src="/bower_components/d3-tip/index.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:js scripts/plugins.js -->
+    <!-- endbuild -->
+    <!-- build:js scripts/main.js -->
+    <script src="scripts/main.js"></script>
+    <script src="scripts/graph/graph.js"></script>
+    <script src="scripts/graph/node.js"></script>
+    <script src="scripts/graph/edge.js"></script>
+    <script src="scripts/graph/path.js"></script>
+    <script src="scripts/graph/adjacency_matrix.js"></script>
+    <script src="scripts/graph/adj_matrix.js"></script>
+    <script src="scripts/graph/intermediate_table.js"></script>
+    <!-- endbuild -->
+</body>
+
 </html>

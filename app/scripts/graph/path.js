@@ -17,7 +17,7 @@ class Path {
     let self = this;
     let edge = self.getLastEdge();
     if (edge && edge.targetId != node.id) {
-      //throw 'Tried to create a garbage path with edge/node mistmatch';
+      throw 'Tried to create a garbage path with edge/node mistmatch';
     } 
     else {
       self.nodes.push(node);
